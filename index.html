@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OMA One Stop Service</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Bai+Jamjuree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Bai Jamjuree', 'sans-serif'], 
+            heading: ['Prompt', 'sans-serif'],    
+            mono: ['JetBrains Mono', 'monospace'] 
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ==========================================
+       1. THEME VARIABLES (Liquid Glass & AMR ASIA)
+    ========================================== */
+    :root {
+      --red: #D62828; 
+      --red-light: rgba(214, 40, 40, 0.1); 
+      --bg: #F5F5F7; 
+      --surface: #FFFFFF; 
+      --glass: rgba(255, 255, 255, 0.72);
+      --navy: #1A252F; --text: #1C2833; --text-2: #566573; --text-3: #99A3A4; 
+      --sidebar-w: 260px; --topbar-h: 70px; --border: rgba(0, 0, 0, 0.08); 
+      --success: #1E8449; --success-bg: #EAFAF1;
+      --warn: #D68910; --warn-bg: #FEF9E7;
+      --info: #1A5276; --info-bg: #EAF2FF;
+      --danger: #E74C3C; --danger-bg: #FADBD8;
+      --radius: 14px; --radius-sm: 8px;
+      --shadow-sm: 0 4px 24px -2px rgba(0,0,0,0.05); 
+      --shadow-md: 0 8px 32px -4px rgba(0,0,0,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Bai Jamjuree', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); overflow: hidden; height: 100vh; }
+    h1, h2, h3, h4, h5, h6, .section-title, .card-title, #pageTitle, .stat-value, .logo-text, th, .btn { font-family: 'Prompt', sans-serif; }
+
+    #sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    #sidebar.collapsed { transform: translateX(-100%); }
+    .sidebar-logo { height: var(--topbar-h); display: flex; align-items: center; gap: 12px; padding: 0 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .logo-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+    .logo-text { color: var(--red); font-weight: 700; font-size: 16px; line-height: 1.2; }
+    .logo-text span { display: block; font-weight: 400; font-size: 11px; color: var(--text-2); }
+    .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 12px; }
+    .sidebar-nav::-webkit-scrollbar { width: 5px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 5px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-2); cursor: pointer; transition: 0.2s; position: relative; text-decoration: none; border-radius: 10px; margin-bottom: 4px;}
+    .nav-item:hover { background: var(--red-light); color: var(--red); }
+    .nav-item.active { background: var(--red); color: #fff; box-shadow: 0 4px 12px rgba(214,40,40,0.2); }
+    .nav-icon { width: 24px; display: flex; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .nav-label { flex: 1; font-size: 14px; font-weight: 500; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; flex-shrink: 0; cursor: pointer; color: var(--text-2); transition: 0.2s;}
+    .sidebar-footer:hover { background: rgba(0,0,0,0.02); color: var(--red); }
+
+    #topbar { position: fixed; left: var(--sidebar-w); top: 0; right: 0; height: var(--topbar-h); background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 15px; z-index: 90; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    #sidebar.collapsed ~ #topbar { left: 0; }
+    .topbar-toggle { background: transparent; border: none; font-size: 1.5rem; color: var(--text-2); cursor: pointer; padding: 6px; display: flex; align-items: center; transition: 0.2s; border-radius: 8px; }
+    .topbar-toggle:hover { background: rgba(0,0,0,0.05); color: var(--red); }
+    .topbar-page-title { flex: 1; }
+    .topbar-page-title h4 { margin: 0; font-size: 18px; font-weight: 600; color: var(--text); }
+    #topbarFilter { display: none; align-items: center; gap: 10px; background: rgba(255,255,255,0.6); border: 1px solid var(--border); border-radius: 20px; padding: 4px 16px 4px 12px; }
+
+    #main { margin-left: var(--sidebar-w); margin-top: var(--topbar-h); height: calc(100vh - var(--topbar-h)); overflow-y: auto; padding: 24px; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    #sidebar.collapsed ~ #main { margin-left: 0; }
+    .page-section { display: none; animation: fadeIn 0.3s ease; }
+    .page-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    .section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .section-title { font-size: 20px; font-weight: 600; }
+    .stat-grid-5 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    #dashboardCards { display: flex; width: 100%; gap: 16px; }
+    .card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; height: 100%; }
+    .card-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;}
+    .card-title { font-size: 16px; font-weight: 600; color: var(--red);}
+    .card-sub { font-size: 12px; color: var(--text-3); margin-top: 2px;}
+    .card-body { padding: 20px 24px; }
+  
+    .stat-card { background: var(--surface); border-radius: var(--radius); padding: 20px 24px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); position: relative; transition: all 0.3s ease; cursor: pointer; overflow: hidden; flex: 1; }
+    .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: rgba(214,40,40,0.2); }
+    .stat-card::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 5px; }
+    .stat-card.red::after { background: var(--red); } 
+    .stat-card.green::after { background: var(--success); } 
+    .stat-card.amber::after { background: var(--warn); } 
+    .stat-card.blue::after { background: var(--info); }
+    .stat-card.cyan::after { background: #06B6D4; }
+    .stat-card.violet::after { background: #8B5CF6; }
+    .stat-card.pink::after { background: #EC4899; }
+    
+    .stat-label { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 6px; color: var(--text); }
+    .stat-value.red { color: var(--red); } .stat-value.green { color: var(--success); } .stat-value.blue { color: var(--info); } .stat-value.amber { color: var(--warn); }
+    .stat-icon { position: absolute; right: 20px; top: 20px; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;}
+    .stat-icon.red { background: var(--red-light); color: var(--red); } 
+    .stat-icon.green { background: var(--success-bg); color: var(--success); } 
+    .stat-icon.blue { background: var(--info-bg); color: var(--info); } 
+    .stat-icon.amber { background: var(--warn-bg); color: var(--warn); }
+    .stat-icon.cyan { background: #ECFEFF; color: #06B6D4; }
+    .stat-icon.violet { background: #F5F3FF; color: #8B5CF6; }
+    .stat-icon.pink { background: #FDF2F8; color: #EC4899; }
+    .stat-card.active-selected { box-shadow: inset 0 0 0 4px #D62828, 0 4px 12px rgba(0,0,0,0.15) !important; border-color: transparent !important; transform: translateY(-3px); }
+
+    #ganttContainer, .gantt, .g-body, .gantt-body { width: 100% !important; max-width: 100% !important; display: block !important; }
+    .g-row { width: 100% !important; display: grid !important; grid-template-columns: 200px 1fr !important; }
+    .table-wrap { overflow-x: auto; width: 100%; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto; }
+    thead th { background: #F8F9FA; padding: 12px 16px; text-align: left; font-weight: 600; color: var(--text-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: .2s; cursor: pointer;}
+    tbody tr:hover { background: var(--bg); }
+    tbody td { padding: 12px 16px; color: var(--text); vertical-align: middle; white-space: nowrap; }
+    tbody td:nth-child(1) { white-space: normal; min-width: 100px; line-height: 1.4; }
+    tbody td:nth-child(3) { white-space: normal; min-width: 200px; max-width: 300px; word-wrap: break-word; line-height: 1.4; }
+    .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; gap: 6px; }
+    .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge.active { background: var(--success-bg); color: var(--success); }
+    .badge.closed { background: var(--bg); color: var(--text-2); }
+    .badge.alert { background: var(--danger-bg); color: var(--danger); }
+  </style>
+
+  <script src="js/main.js" defer></script>
+  <script src="js/projects.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</head>
+<body>
+
+  <div id="login-window" class="flex items-center justify-center h-screen w-screen bg-[#F5F5F7] relative p-4 z-[200]">
+    <div class="absolute inset-0 bg-gradient-to-tr from-red-100 to-transparent opacity-50 z-0"></div>
+    <div class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl border border-gray-200/50 p-8 shadow-xl z-10">
+      <div class="text-center mb-6">
+        <img src="https://img1.pic.in.th/images/AMR_LOGO_01_NO_BG.png" class="h-12 mx-auto object-contain mb-3" alt="AMR Logo">
+        <h2 class="text-xl font-bold font-heading text-gray-800">OMA One Stop Service</h2>
+        <p class="text-xs text-gray-400 mt-1">กรุณาเข้าสู่ระบบเพื่อใช้งานระบบบริหารจัดการ</p>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">EMAIL ADDRESS</label>
+          <input type="email" id="inputEmail" placeholder="username@amrasia.com" class="w-full p-3 bg-white/60 border border-gray-200 rounded-xl font-sans text-sm outline-none focus:border-red-500 transition-all">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">PASSWORD</label>
+          <input type="password" id="inputPassword" placeholder="••••••••" class="w-full p-3 bg-white/60 border border-gray-200 rounded-xl font-sans text-sm outline-none focus:border-red-500 transition-all">
+        </div>
+        <button onclick="executeAuth()" id="btnLogin" class="w-full bg-[#D62828] hover:bg-red-700 text-white font-heading font-semibold py-3 rounded-xl shadow-lg transition-all mt-2 flex items-center justify-center gap-2">
+          <span>เข้าสู่ระบบ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="portal-workspace" style="display: none;">
+    <nav id="sidebar">
+      <div class="sidebar-logo">
+        <img src="https://img1.pic.in.th/images/AMR_LOGO_01_NO_BG.png" class="logo-icon object-contain" alt="AMR Logo">
+        <div class="logo-text">OMA<span>Management System</span></div>
+      </div>
+      <div class="sidebar-nav" id="sidebarNavContainer"></div>
+      <div class="sidebar-footer" onclick="toggleSidebar()">
+        <span class="nav-icon"><i class="bi bi-arrow-bar-left"></i></span>
+        <span class="nav-label text-sm">ซ่อนเมนู</span>
+      </div>
+    </nav>
+
+    <header id="topbar">
+      <div class="flex items-center gap-4">
+        <button class="topbar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+        <div class="topbar-page-title"><h4 id="pageTitle">ข้อมูลโครงการ (Project Info)</h4></div>
+      </div>
+      
+      <div class="flex items-center gap-4 ml-auto">
+        <div id="topbarFilter">
+          <div style="position: relative;">
+            <i class="bi bi-search" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Project, Ref..." style="padding: 6px 10px 6px 30px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 260px; outline: none;">
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 12px; color: var(--text-2); font-weight: 600;">Year:</label>
+            <select id="filterYear" onchange="applyCascadingFilter()" style="border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font-size: 13px; outline: none; background: #fff;"><option value="All">All</option></select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 12px; color: var(--text-2); font-weight: 600;">Customer:</label>
+            <select id="filterCustomer" onchange="applyCascadingFilter()" style="border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font-size: 13px; outline: none; max-width: 150px; background: #fff;"><option value="All">All</option></select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 12px; color: var(--text-2); font-weight: 600;">PM:</label>
+            <select id="filterPM" onchange="applyCascadingFilter()" style="border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font-size: 13px; outline: none; max-width: 150px; background: #fff;"><option value="All">All</option></select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 12px; color: var(--text-2); font-weight: 600;">Status:</label>
+            <select id="filterStatus" onchange="applyCascadingFilter()" style="border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font-size: 13px; outline: none; max-width: 150px; background: #fff;"><option value="Active">Active</option><option value="All">All</option></select>
+          </div>
+          <button onclick="clearAllFilters()" style="padding: 5px 12px; font-size: 12px; font-weight: 600; color: #566573; background: #fff; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">Clear</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main"></main>
+  </div>
+
+</body>
+</html>
