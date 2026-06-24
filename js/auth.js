@@ -47,7 +47,7 @@ function buildPortalUI(menus) {
   menus.forEach((menu, idx) => {
     const isDefault = idx === 0;
     
-    // 1. วาดปุ่มเมนูใน Sidebar
+    // 1. สร้างปุ่มเมนูใน Sidebar ด้านซ้าย
     const navLink = document.createElement('a');
     navLink.href = "javascript:void(0)";
     navLink.className = `nav-item ${isDefault ? 'active' : ''}`;
@@ -55,81 +55,38 @@ function buildPortalUI(menus) {
     navLink.onclick = function() { switchModule(menu.id, this, menu.label); };
     navContainer.appendChild(navLink);
     
-    // 2. วาดเซกชันเนื้อหา
+    // 2. สร้างเซกชันเนื้อหาหลัก (รองรับระบบ Iframe 100%)
     const section = document.createElement('section');
     section.id = menu.id;
     section.className = `page-section ${isDefault ? 'active' : ''}`;
     
     if (menu.isIframe) {
+      // ดึงทุกโมดูลที่เป็น Iframe มาแสดงผล (รวมถึงหน้าโครงการอันใหม่ของคุณด้วย)
       section.style.height = '100%';
       section.innerHTML = `
         <div style="width: 100%; height: calc(100vh - var(--topbar-h) - 48px); background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
           <iframe src="${menu.src}" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>`;
     } else {
-      // 🚀 หน้าแดชบอร์ดโครงการหลักชุดเต็มตามรูปแบบเดิมของคุณ 100%
+      // ส่วนเผื่อเลือกในอนาคต หากมีหน้าจอภายในหน้าบ้านเอง
       section.innerHTML = `
-        <div class="section-header">
-          <div><div class="section-title text-gray-800">เจาะลึกตามประเภทโครงการ</div></div>
-        </div>
-
-        <div class="stat-grid-5" id="dashboardCards"></div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto auto; gap:20px; margin-bottom:24px;">
-          <div class="card" style="grid-column: 1 / -1; width: 100%;">
-            <div class="card-header">
-              <div><div class="card-title" id="eventTimelineTitle">Project Event</div><div class="card-sub">จำนวนโครงการแยกตามเดือนและสถานะ</div></div>
-            </div>
-            <div class="card-body"><div style="position:relative; height:240px; width:100%;"><canvas id="warrantyChart"></canvas></div></div>
-          </div>
-
-          <div class="card" style="grid-column: 1 / -1; width: 100%;">
-            <div class="card-header">
-              <div><div class="card-title">Project Value Trend (ExVat)</div><div class="card-sub">มูลค่าโครงการประเภท Maintenance</div></div>
-            </div>
-            <div class="card-body">
-              <div id="valueTrendLegend" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; font-size:12px;"></div>
-              <div style="position:relative; height:210px; width:100%;"><canvas id="valueTrendChart"></canvas></div>
-            </div>
-          </div>
-
-          <div class="card" style="grid-column: 1 / -1; width: 100%;">
-            <div class="card-header">
-              <div><div class="card-title">Project Timeline (Gantt)</div><div class="card-sub">ระยะเวลาสัญญาโครงการ</div></div>
-            </div>
-            <div class="card-body" style="padding:0;">
-              <div id="ganttContainer" style="width: 100%; min-width: 800px;"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div><div class="card-title">Project List</div><div class="card-sub">ข้อมูลโครงการทั้งหมด</div></div>
-            <button class="btn btn-outline" style="font-size: 12px; padding: 6px 14px; border: 1px solid var(--border); background: var(--bg); border-radius: 6px; cursor: pointer; color: var(--text-2); font-weight: 600;" onclick="renderProjectTable(window.globalProjectData)">แสดงทั้งหมด</button>
-          </div>
-          <div class="table-wrap">
-            <table id="projectTable">
-              <thead>
-                <tr><th>Customer</th> <th>ContractNo</th> <th>ProjectName</th> <th>RefCode</th> <th>Handover</th> <th>ContractStart</th> <th>ContractEnd</th> <th>ContractPeriod</th> <th>ProjectValue(ExVat)</th> <th>ContractInfo</th> <th>PM</th> <th>StatusOfContract</th><th>ClosedDate</th> </tr>
-              </thead>
-              <tbody id="projectTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      `;
-      
-      // เรียกใช้ระบบ Engine ประมวลผลและวาดกราฟทันทีหลังสร้างหน้าจอเสร็จ
-      if (typeof initProjectDashboard === 'function') {
-        setTimeout(initProjectDashboard, 50);
-      }
+        <div class="p-6 bg-white rounded-xl border border-gray-200">
+          <p class="text-gray-500">กำลังโหลดเนื้อหาสำหรับโมดูล ${menu.label}...</p>
+        </div>`;
     }
     
     mainContainer.appendChild(section);
+    
+    // ตั้งค่าเริ่มต้นเมื่อเปิดเว็บหน้าแรก
     if(isDefault) {
       document.getElementById('pageTitle').innerText = menu.label;
+      
+      // 💡 เคล็ดลับ: ซ่อนแถบฟิลเตอร์ (Topbar Filter) ของหน้าบ้านเดิม 
+      // เพราะหน้าจอโครงการอันใหม่จะใช้ระบบฟิลเตอร์ที่สร้างอยู่ข้างใน Iframe ตัวเองแล้ว
       const filterGroup = document.getElementById('topbarFilter');
-      if (filterGroup && menu.id === 'sec-projects-dash') filterGroup.style.display = 'flex';
+      if (filterGroup) {
+        filterGroup.style.display = 'none';
+      }
     }
   });
 }
