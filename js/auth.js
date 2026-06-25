@@ -19,6 +19,9 @@ async function executeAuth() {
     const result = await response.json();
     
     if (result.success) {
+      // ✅ บันทึก Session ไว้ใน localStorage เพื่อให้จำการ login ได้แม้ Refresh หน้า
+      localStorage.setItem('oma_session', JSON.stringify({ email, password }));
+      
       document.getElementById('login-window').remove(); // ทำลายหน้า Login ทิ้งทันทีเพื่อความปลอดภัย
       document.getElementById('portal-workspace').style.display = 'block';
       
@@ -87,25 +90,43 @@ if(isDefault) {
         filterGroup.style.display = 'none';
       }
     }
-  });
+  });}
 
-// ✅ ปักหมุดลายน้ำไว้ล่างสุดของ Sidebar (ไม่แก้ position ของ sidebar เดิม)
-  const sidebarEl = document.getElementById('sidebar');
-  if (sidebarEl && !document.getElementById('devWatermark')) {
-    const watermark = document.createElement('div');
-    watermark.id = 'devWatermark';
-    watermark.innerHTML = 'Developed by Pallin.J & Parichat.S<br>Story by Thakhun.C';
-    watermark.style.cssText = `
-      margin-top: auto;
-      text-align: center;
-      font-size: 11px;
-      color: #999999;
-      opacity: 0.6;
-      padding: 8px 4px;
-      user-select: none;
-      pointer-events: none;
-      white-space: nowrap;
-    `;
-    sidebarEl.appendChild(watermark);
+// ✅ เช็คว่ามี Session เดิมที่ยัง Login ค้างอยู่ไหม (เรียกใช้ตอนเปิดหน้าเว็บ)
+async function checkExistingSession() {
+  const saved = localStorage.getItem('oma_session');
+  if (!saved) return; // ไม่มี session เดิม ให้แสดงหน้า login ตามปกติ
+  
+  try {
+    const { email, password } = JSON.parse(saved);
+    
+    const response = await fetch(AUTH_API_ENDPOINT, {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    const result = await response.json();
+    
+    if (result.success) {
+      // Session ยังใช้ได้ -> ข้ามหน้า Login ไปเลย
+      const loginWindow = document.getElementById('login-window');
+      if (loginWindow) loginWindow.remove();
+      document.getElementById('portal-workspace').style.display = 'block';
+      buildPortalUI(result.menus);
+    } else {
+      // รหัสผ่านอาจถูกเปลี่ยน หรือสิทธิ์ถูกถอน -> ล้าง session เก่าทิ้ง
+      localStorage.removeItem('oma_session');
+    }
+  } catch (err) {
+    // เชื่อมต่อไม่ได้ ก็ปล่อยให้แสดงหน้า login ตามปกติไปก่อน
+    console.warn('ไม่สามารถตรวจสอบ session เดิมได้:', err);
   }
 }
+
+// 🔓 ฟังก์ชัน Logout
+function logoutUser() {
+  localStorage.removeItem('oma_session');
+  location.reload(); // รีเฟรชหน้าใหม่ทั้งหมด กลับไปหน้า Login
+}
+
+// เรียกเช็ค session ทันทีที่หน้าเว็บโหลดเสร็จ
+document.addEventListener('DOMContentLoaded', checkExistingSession);
