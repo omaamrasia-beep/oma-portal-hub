@@ -77,8 +77,7 @@ function buildPortalUI(menus) {
     
     mainContainer.appendChild(section);
     
-    // ตั้งค่าเริ่มต้นเมื่อเปิดเว็บหน้าแรก
-    if(isDefault) {
+if(isDefault) {
       document.getElementById('pageTitle').innerText = menu.label;
       
       // 💡 เคล็ดลับ: ซ่อนแถบฟิลเตอร์ (Topbar Filter) ของหน้าบ้านเดิม 
@@ -89,4 +88,28 @@ function buildPortalUI(menus) {
       }
     }
   });
+
+  // ✅ ปักหมุดลายน้ำไว้ล่างสุดของ Sidebar (ไม่ขยับตามจำนวนเมนู)
+  const sidebarEl = document.getElementById('sidebar');
+  if (sidebarEl && !document.getElementById('devWatermark')) {
+    sidebarEl.style.position = 'relative'; // ให้ลายน้ำยึดตำแหน่งจาก sidebar นี้
+    
+    const watermark = document.createElement('div');
+    watermark.id = 'devWatermark';
+    watermark.innerText = 'Developed by Pallin.J & Parichat.S<br>Storytelling by Thakhun.C';
+    watermark.style.cssText = `
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 11px;
+      color: #999999;
+      opacity: 0.6;
+      user-select: none;
+      pointer-events: none;
+      white-space: nowrap;
+    `;
+    sidebarEl.appendChild(watermark);
+  }
 }
