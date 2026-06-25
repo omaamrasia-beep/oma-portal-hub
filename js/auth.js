@@ -89,23 +89,19 @@ if(isDefault) {
     }
   });
 
-  // ✅ ปักหมุดลายน้ำไว้ล่างสุดของ Sidebar (ไม่ขยับตามจำนวนเมนู)
+// ✅ ปักหมุดลายน้ำไว้ล่างสุดของ Sidebar (ไม่แก้ position ของ sidebar เดิม)
   const sidebarEl = document.getElementById('sidebar');
   if (sidebarEl && !document.getElementById('devWatermark')) {
-    sidebarEl.style.position = 'relative'; // ให้ลายน้ำยึดตำแหน่งจาก sidebar นี้
-    
     const watermark = document.createElement('div');
     watermark.id = 'devWatermark';
-    watermark.innerText = 'Developed by Pallin.J & Parichat.S<br>Storytelling by Thakhun.C';
+    watermark.innerHTML = 'Developed by Pallin.J & Parichat.S<br>Story by Thakhun.C';
     watermark.style.cssText = `
-      position: absolute;
-      bottom: 8px;
-      left: 0;
-      width: 100%;
+      margin-top: auto;
       text-align: center;
       font-size: 11px;
       color: #999999;
       opacity: 0.6;
+      padding: 8px 4px;
       user-select: none;
       pointer-events: none;
       white-space: nowrap;
