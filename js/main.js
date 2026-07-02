@@ -12,12 +12,9 @@ function switchModule(targetId, element, title) {
     targetSection.classList.add('active');
   }
   
-  document.getElementById('pageTitle').innerText = title;
-  
-  // ซ่อน/แสดงกล่องค้นหาบน Topbar เฉพาะหน้าโครงการหลัก
-  const topbarFilter = document.getElementById('topbarFilter');
-  if (topbarFilter) {
-    topbarFilter.style.display = (targetId === 'sec-projects-dash') ? 'flex' : 'none';
+  const pageTitle = document.getElementById('pageTitle');
+  if (pageTitle) {
+    pageTitle.innerText = title;
   }
 }
 
@@ -26,6 +23,21 @@ function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   if(sidebar) sidebar.classList.toggle('collapsed');
 }
+
+function isSidebarInteractionTarget(target) {
+  if (!(target instanceof Element)) return false;
+  return target.closest('#sidebar') || target.closest('.topbar-toggle') || target.closest('.sidebar-hint-button');
+}
+
+function collapseSidebarOnOutsideInteraction(event) {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar || sidebar.classList.contains('collapsed')) return;
+  if (isSidebarInteractionTarget(event.target)) return;
+  sidebar.classList.add('collapsed');
+}
+
+document.addEventListener('click', collapseSidebarOnOutsideInteraction);
+document.addEventListener('focusin', collapseSidebarOnOutsideInteraction);
 
 // ==========================================
 // --- UI CONTROLS (Sidebar & Sections) ---
@@ -88,18 +100,17 @@ window.loadPage = function(sectionId, element, customTitle = null) {
     'sec-vehicles-dash': { title: 'รถ (Vehicle)' },
     'sec-kpi-dash': { title: 'KPI Dashboard' },
     'sec-solar-dash': { title: 'Solar Monitoring' },
+    'sec-employee-dash': { title: 'ข้อมูลพนักงาน (Employee Info)' },
+    'sec-labroom-dash': { title: 'LabTest Room' }
   };
 
   let meta = pageMeta[sectionId] || { title: customTitle || 'อยู่ระหว่างพัฒนา' };
-  if(document.getElementById('pageTitle')) document.getElementById('pageTitle').innerText = meta.title;
-
-  // 4. ซ่อน/แสดง กล่องค้นหาและ Dropdown บน Topbar (แสดงเฉพาะหน้าแรกโครงการ)
-  const filterGroup = document.getElementById('topbarFilter');
-  if (filterGroup) {
-    filterGroup.style.display = (sectionId === 'sec-projects-dash') ? 'flex' : 'none'; 
+  const pageTitle = document.getElementById('pageTitle');
+  if (pageTitle) {
+    pageTitle.innerText = meta.title;
   }
 
-  // 5. โหลดข้อมูลตามหน้าที่เรียกใช้งานแบบ Dynamic
+  // 4. โหลดข้อมูลตามหน้าที่เรียกใช้งานแบบ Dynamic
   if(sectionId === 'sec-projects-dash' && typeof fetchDashboardData === 'function') {
     fetchDashboardData();
   }

@@ -67,7 +67,7 @@ function buildPortalUI(menus) {
       // ดึงทุกโมดูลที่เป็น Iframe มาแสดงผล (รวมถึงหน้าโครงการอันใหม่ของคุณด้วย)
       section.style.height = '100%';
       section.innerHTML = `
-        <div style="width: 100%; height: calc(100vh - var(--topbar-h) - 48px); background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
+        <div style="width: 100%; height: calc(100vh - 48px); min-height: calc(100vh - 48px); background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
           <iframe src="${menu.src}" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>`;
     } else {
@@ -80,14 +80,10 @@ function buildPortalUI(menus) {
     
     mainContainer.appendChild(section);
     
-if(isDefault) {
-      document.getElementById('pageTitle').innerText = menu.label;
-      
-      // 💡 เคล็ดลับ: ซ่อนแถบฟิลเตอร์ (Topbar Filter) ของหน้าบ้านเดิม 
-      // เพราะหน้าจอโครงการอันใหม่จะใช้ระบบฟิลเตอร์ที่สร้างอยู่ข้างใน Iframe ตัวเองแล้ว
-      const filterGroup = document.getElementById('topbarFilter');
-      if (filterGroup) {
-        filterGroup.style.display = 'none';
+    if (isDefault) {
+      const pageTitle = document.getElementById('pageTitle');
+      if (pageTitle) {
+        pageTitle.innerText = menu.label;
       }
     }
   });}
