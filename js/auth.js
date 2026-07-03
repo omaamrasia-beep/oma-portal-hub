@@ -1,6 +1,24 @@
 // ⚠️ ใส่ URL Web App ของคุมสิทธิ์ที่คุณจัดทำไว้ในขั้นตอนก่อนหน้านี้
 const AUTH_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwvg_N-ZAqfZVJCyRTTizomDZR3_eH0WMgmxp8gc1YqUtYL6AZte4sRJlEIqwL3zs_PJA/exec"; 
 
+async function postAuth(payload) {
+  const response = await fetch(AUTH_API_ENDPOINT, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} ${response.statusText}: ${text.slice(0, 300)}`);
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    throw new Error(`Invalid JSON response from auth server: ${text.slice(0, 300)}`);
+  }
+}
+
 async function executeAuth() {
   const btn = document.getElementById('btnLogin');
   const email = document.getElementById('inputEmail').value;
@@ -12,11 +30,7 @@ async function executeAuth() {
   btn.innerHTML = `กำลังตรวจสอบ...`;
   
   try {
-    const response = await fetch(AUTH_API_ENDPOINT, {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
-    const result = await response.json();
+    const result = await postAuth({ email, password });
     
     if (result.success) {
       // ✅ บันทึก Session ไว้ใน localStorage เพื่อให้จำการ login ได้แม้ Refresh หน้า
@@ -33,7 +47,8 @@ async function executeAuth() {
       btn.innerHTML = 'เข้าสู่ระบบ';
     }
   } catch (err) {
-    alert('ไม่สามารถเชื่อมต่อฐานข้อมูลสิทธิ์ส่วนกลางได้');
+    console.error('Auth request failed:', err);
+    alert('ไม่สามารถเชื่อมต่อฐานข้อมูลสิทธิ์ส่วนกลางได้: ' + (err.message || err));
     btn.disabled = false;
     btn.innerHTML = 'เข้าสู่ระบบ';
   }
@@ -96,11 +111,7 @@ async function checkExistingSession() {
   try {
     const { email, password } = JSON.parse(saved);
     
-    const response = await fetch(AUTH_API_ENDPOINT, {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
-    const result = await response.json();
+    const result = await postAuth({ email, password });
     
     if (result.success) {
       // Session ยังใช้ได้ -> ข้ามหน้า Login ไปเลย
@@ -113,7 +124,6 @@ async function checkExistingSession() {
       localStorage.removeItem('oma_session');
     }
   } catch (err) {
-    // เชื่อมต่อไม่ได้ ก็ปล่อยให้แสดงหน้า login ตามปกติไปก่อน
     console.warn('ไม่สามารถตรวจสอบ session เดิมได้:', err);
   }
 }

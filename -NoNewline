@@ -1,0 +1,10 @@
+import urllib.request, json
+url = 'https://script.google.com/macros/s/AKfycbwvg_N-ZAqfZVJCyRTTizomDZR3_eH0WMgmxp8gc1YqUtYL6AZte4sRJlEIqwL3zs_PJA/exec'
+data = json.dumps({'email':'test@example.com','password':'x'}).encode('utf-8')
+req = urllib.request.Request(url, data=data, headers={'Content-Type':'application/json','Accept':'application/json'})
+try:
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        print('STATUS', resp.status)
+        print(resp.read().decode('utf-8', errors='replace'))
+except Exception as e:
+    print(type(e).__name__, e)
