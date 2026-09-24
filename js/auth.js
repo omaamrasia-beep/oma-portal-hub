@@ -7,6 +7,14 @@ const AUTH_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwvg_N-ZAqfZV
 // อยู่แล้ว (8 ชม.) และ checkExistingSession() ก็ยิง login ใหม่ให้ทุกครั้งที่เปิดหน้าเว็บ
 window.AUTH_TOKEN = '';
 
+// กัน buildPortalUI ถูกเรียกซ้ำสอง — checkExistingSession() (auto ตอนเปิดหน้า) กับ
+// executeAuth() (ตอนกดปุ่ม login) เป็นคนละ flow ที่แยกอิสระจากกัน ถ้า auto-login ช้า
+// (รอ Auth.gs ตอบ) แล้วผู้ใช้ใจร้อนกดปุ่ม login เองก่อน ทั้งสอง flow จะ resolve เกือบพร้อม
+// กันและเรียก buildPortalUI ซ้อนกันทั้งคู่ — mainContainer.innerHTML ถูกล้างแล้วสร้างใหม่
+// รอบที่สอง ทำให้ iframe ของ Projects (เมนู default) ถูกทิ้งแล้วโหลดใหม่ทั้งอัน เห็นเป็น
+// จอกระพริบขาวแล้วข้อมูลเดิมกลับมา (ของใหม่ที่เพิ่งโหลดซ้ำ ไม่ใช่ค่าเก่าค้าง)
+let _portalBuilt = false;
+
 async function postAuth(payload) {
   const response = await fetch(AUTH_API_ENDPOINT, {
     method: 'POST',
@@ -64,9 +72,14 @@ async function executeAuth() {
 
 // คัดลอกเฉพาะฟังก์ชันนี้ไปแทนที่ฟังก์ชันเดิมใน js/auth.js ของคุณครับ
 function buildPortalUI(menus) {
+  // กันเรียกซ้ำสอง (ดูคำอธิบาย _portalBuilt ด้านบน) — ถ้าเคย build ไปแล้วรอบหนึ่งใน
+  // การโหลดหน้าเว็บครั้งนี้ ไม่ต้อง build ซ้ำอีกไม่ว่าใครจะเรียกมา
+  if (_portalBuilt) return;
+  _portalBuilt = true;
+
   const navContainer = document.getElementById('sidebarNavContainer');
   const mainContainer = document.getElementById('main');
-  
+
   navContainer.innerHTML = '';
   mainContainer.innerHTML = '';
   
@@ -94,11 +107,16 @@ function buildPortalUI(menus) {
       // โหลด iframe แบบ lazy: เมนูแรก (isDefault) โหลดทันที ส่วนที่เหลือรอจนกว่าจะถูก
       // คลิกเปิดจริง (ดู switchModule ใน main.js) — ไม่งั้นทุก child app ทั้ง 7 ตัวจะ
       // โหลดพร้อมกันหมดตั้งแต่ล็อกอิน ทำให้เว็บช้าและมี console warning จากแอปที่ไม่ได้เปิดดูด้วย
+      //
+      // ทุกแท็บ (รวมเมนู default) แสดง spinner แบบเดียวกันทับ iframe ไว้จนกว่าจะโหลดเสร็จ
+      // (iframe.onload) แทนที่จะเห็นพื้นที่ว่างสีขาวเปล่าๆ ระหว่างรอ — ให้ทุกแอปลูกมี
+      // ลักษณะตอนโหลดเหมือนกันหมด ไม่ว่าตัวแอปเองจะมีหน้าจอ loading ของตัวเองหรือไม่
       section.style.height = '100%';
       const srcAttr = isDefault ? `src="${menu.src}"` : `data-src="${menu.src}"`;
       section.innerHTML = `
-        <div style="width: 100%; height: calc(100vh - 48px); min-height: calc(100vh - 48px); background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
-          <iframe ${srcAttr} style="width: 100%; height: 100%; border: none;"></iframe>
+        <div class="iframe-shell">
+          <div class="iframe-loading"><div class="spinner"></div><p>กำลังโหลด...</p></div>
+          <iframe ${srcAttr} style="width: 100%; height: 100%; border: none;" onload="this.previousElementSibling.classList.add('hide')"></iframe>
         </div>`;
     } else if (menu.id === 'sec-settings' && typeof renderSettingsModule === 'function') {
       // หน้า Authorization — เรนเดอร์จริงจาก js/settings.js (ไม่ใช่ placeholder)
