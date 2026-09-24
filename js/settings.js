@@ -110,28 +110,28 @@ function userModal(user) {
   const u = user || { email: '', name: '', role: (s.roles[0] || {}).role || 'viewer', projects: [], active: true };
 
   const ov = document.createElement('div');
-  ov.className = 'fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[250]';
+  ov.className = 'modal-overlay';
   ov.innerHTML =
-    '<div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-auto">' +
-    '<h3 class="font-heading font-semibold text-lg mb-4">' + (isNew ? 'เพิ่มผู้ใช้' : 'แก้ไขผู้ใช้') + '</h3>' +
+    '<div class="modal-box">' +
+    '<h3>' + (isNew ? 'เพิ่มผู้ใช้' : 'แก้ไขผู้ใช้') + '</h3>' +
     '<div class="space-y-3">' +
-    '<div><label class="block text-xs font-semibold text-gray-500 mb-1">อีเมล</label><input id="mEmail" type="email" value="' + escHtml(u.email) + '" ' + (isNew ? '' : 'readonly') + ' class="w-full p-2.5 border border-gray-200 rounded-lg text-sm"></div>' +
-    '<div><label class="block text-xs font-semibold text-gray-500 mb-1">ชื่อ-นามสกุล</label><input id="mName" type="text" value="' + escHtml(u.name) + '" class="w-full p-2.5 border border-gray-200 rounded-lg text-sm"></div>' +
-    '<div><label class="block text-xs font-semibold text-gray-500 mb-1">ตำแหน่ง</label><select id="mRole" class="w-full p-2.5 border border-gray-200 rounded-lg text-sm">' +
+    '<div><label>อีเมล</label><input id="mEmail" type="email" value="' + escHtml(u.email) + '" ' + (isNew ? '' : 'readonly') + '></div>' +
+    '<div><label>ชื่อ-นามสกุล</label><input id="mName" type="text" value="' + escHtml(u.name) + '"></div>' +
+    '<div><label>ตำแหน่ง</label><select id="mRole">' +
       s.roles.filter(r => r.active).map(r => '<option value="' + escHtml(r.role) + '"' + (r.role === u.role ? ' selected' : '') + '>' + escHtml(r.label) + '</option>').join('') +
     '</select></div>' +
-    '<div id="mProjWrap"><label class="block text-xs font-semibold text-gray-500 mb-1">โครงการที่เข้าถึงได้</label>' +
+    '<div id="mProjWrap"><label>โครงการที่เข้าถึงได้</label>' +
       '<div class="grid grid-cols-2 gap-2" id="mProjects">' +
       (s.projects.length ? s.projects.filter(p => p.active).map(p =>
-        '<label class="flex items-center gap-2 text-sm border border-gray-200 rounded-lg p-2"><input type="checkbox" value="' + escHtml(p.code) + '"' + (u.projects.indexOf(p.code) !== -1 ? ' checked' : '') + '> ' + escHtml(p.name || p.code) + '</label>').join('')
+        '<label class="field-check"><input type="checkbox" value="' + escHtml(p.code) + '"' + (u.projects.indexOf(p.code) !== -1 ? ' checked' : '') + '> ' + escHtml(p.name || p.code) + '</label>').join('')
         : '<span class="text-xs text-gray-400">ยังไม่มีโครงการ — เพิ่มได้ที่แท็บ "โครงการ"</span>') +
       '</div></div>' +
-    '<div><label class="block text-xs font-semibold text-gray-500 mb-1">' + (isNew ? 'รหัสผ่านเริ่มต้น' : 'ตั้งรหัสผ่านใหม่ (เว้นว่าง = ไม่เปลี่ยน)') + '</label><input id="mPass" type="password" class="w-full p-2.5 border border-gray-200 rounded-lg text-sm"></div>' +
-    '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="mActive"' + (u.active ? ' checked' : '') + '> เปิดใช้งานบัญชีนี้</label>' +
+    '<div><label>' + (isNew ? 'รหัสผ่านเริ่มต้น' : 'ตั้งรหัสผ่านใหม่ (เว้นว่าง = ไม่เปลี่ยน)') + '</label><input id="mPass" type="password"></div>' +
+    '<label class="field-check"><input type="checkbox" id="mActive"' + (u.active ? ' checked' : '') + '> เปิดใช้งานบัญชีนี้</label>' +
     '</div>' +
     '<div class="flex gap-2 justify-end mt-5">' +
-    '<button id="mCancel" class="px-4 py-2 rounded-lg border border-gray-200 text-sm">ยกเลิก</button>' +
-    '<button id="mSave" class="px-4 py-2 rounded-lg bg-[#D62828] text-white text-sm font-medium">บันทึก</button>' +
+    '<button id="mCancel" class="btn-ghost">ยกเลิก</button>' +
+    '<button id="mSave" class="btn-primary">บันทึก</button>' +
     '</div></div>';
   document.body.appendChild(ov);
 
