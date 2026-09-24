@@ -161,6 +161,16 @@
     .btn-primary:hover { background: #b71c1c; }
     .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; transition: .2s; }
     .btn-ghost:hover { background: var(--bg); }
+
+    /* ==========================================
+       ตัวโหลดของแอปลูก (iframe) — ทุกแท็บใช้รูปแบบเดียวกันหมด กันจอขาวเปล่าระหว่างรอ
+    ========================================== */
+    .iframe-shell { position: relative; width: 100%; height: calc(100vh - 48px); min-height: calc(100vh - 48px); background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .iframe-loading { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: var(--surface); transition: opacity .25s ease; }
+    .iframe-loading.hide { opacity: 0; pointer-events: none; }
+    .iframe-loading .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: iframeSpin .7s linear infinite; }
+    .iframe-loading p { font-size: 13px; color: var(--text-2); }
+    @keyframes iframeSpin { to { transform: rotate(360deg); } }
   </style>
 
   <script src="js/main.js" defer></script>
