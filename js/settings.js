@@ -33,8 +33,12 @@ function settingsToast(msg, isError) {
 }
 
 async function renderSettingsModule(container) {
+  if (!container) return;
   container.innerHTML = '<div class="p-6 bg-white rounded-xl border border-gray-200"><p class="text-gray-500">กำลังโหลดข้อมูลสิทธิ์…</p></div>';
   const r = await settingsApi('getSettings', {});
+  // ถ้าระหว่างรอ API หน้านี้ถูกแทนที่/หลุดออกจากเอกสารไปแล้ว ให้เลิกทำงานเงียบๆ
+  // แทนที่จะไปพัง innerHTML ของ node ที่ไม่มีใครมองเห็นแล้ว
+  if (!container.isConnected) return;
   if (!r.success) {
     container.innerHTML = '<div class="p-6 bg-white rounded-xl border border-gray-200"><p class="text-red-500">' + escHtml(r.message || 'โหลดข้อมูลไม่สำเร็จ') + '</p></div>';
     return;
@@ -44,21 +48,25 @@ async function renderSettingsModule(container) {
 }
 
 function drawSettings(container) {
+  if (!container || !container.isConnected) return;
   const tabs = [['users', 'ผู้ใช้งาน'], ['roles', 'สิทธิ์ตามตำแหน่ง'], ['projects', 'โครงการ'], ['appPages', 'สิทธิ์ในแอปลูก (ละเอียด)']];
   container.innerHTML =
-    '<div class="section-header"><h2 class="section-title">ตั้งค่าสิทธิ์</h2></div>' +
+    '<div class="section-header"><h2 class="section-title">Authorization</h2></div>' +
     '<div class="flex gap-2 flex-wrap mb-5" id="settingsTabBar">' +
     tabs.map(t => '<button data-tab="' + t[0] + '" class="settings-tab-btn px-4 py-2 rounded-full text-sm font-medium border ' +
       (SETTINGS_TAB === t[0] ? 'bg-[#D62828] text-white border-[#D62828]' : 'bg-white text-gray-600 border-gray-200') + '">' + t[1] + '</button>').join('') +
     '</div>' +
     '<div id="settingsTabBody"></div>';
 
-  document.querySelectorAll('.settings-tab-btn').forEach(b => b.addEventListener('click', () => {
+  // สโคปแค่ในตัว container เอง ไม่ใช่ querySelectorAll ทั้งเอกสาร กันปุ่มแท็บของการ
+  // render รอบเก่า (ถ้ามีค้าง) ไปยิง event ซ้อนกับรอบปัจจุบัน
+  container.querySelectorAll('.settings-tab-btn').forEach(b => b.addEventListener('click', () => {
     SETTINGS_TAB = b.dataset.tab;
     drawSettings(container);
   }));
 
-  const body = document.getElementById('settingsTabBody');
+  const body = container.querySelector('#settingsTabBody');
+  if (!body) return;
   if (SETTINGS_TAB === 'users') renderUsersTab(body);
   else if (SETTINGS_TAB === 'roles') renderRolesTab(body);
   else if (SETTINGS_TAB === 'projects') renderProjectsTab(body);
@@ -267,6 +275,8 @@ function renderAppPagesTab(body) {
 
   const cards = appIds.map(appId => {
     const cfg = s.appPages[appId];
+    // ใช้ชื่อแอปตามที่แสดงจริงในแถบเมนูซ้าย (มาจาก Auth.gs) แทน appId ดิบๆ ให้อ่านง่ายขึ้น
+    const appLabel = ((s.menus || []).find(m => m.id === appId) || {}).label || appId;
     const head = '<tr><th>หน้า / ฟีเจอร์</th>' + roles.map(r =>
       '<th class="text-center"><button type="button" data-role-toggle="' + escHtml(r.role) + '" class="font-semibold hover:text-[#D62828]" title="คลิกเพื่อติ๊ก/ปลดติ๊กทั้งคอลัมน์">' + escHtml(r.label) + '</button></th>').join('') + '</tr>';
     const rowsHtml = cfg.allPages.map(pageId => {
@@ -277,7 +287,7 @@ function renderAppPagesTab(body) {
       return '<tr><td>' + escHtml(pageId) + '</td>' + cells + '</tr>';
     }).join('');
 
-    return '<div class="card mb-4" data-app="' + escHtml(appId) + '"><div class="card-header"><div><div class="card-title">' + escHtml(appId) + '</div>' +
+    return '<div class="card mb-4" data-app="' + escHtml(appId) + '"><div class="card-header"><div><div class="card-title">' + escHtml(appLabel) + '</div>' +
       '<div class="card-sub">กำหนดว่าแต่ละตำแหน่งเห็น/ใช้หน้าไหนได้บ้างภายในแอปนี้ · คลิกชื่อตำแหน่งเพื่อติ๊ก/ปลดติ๊กทั้งคอลัมน์</div></div></div>' +
       '<div class="card-body"><div class="table-wrap"><table><thead>' + head + '</thead><tbody>' + rowsHtml + '</tbody></table></div>' +
       '<div class="flex justify-end mt-4"><button data-save-app="' + escHtml(appId) + '" class="px-4 py-2 bg-[#D62828] text-white rounded-lg text-sm font-medium">บันทึกสิทธิ์แอปนี้</button></div></div></div>';

@@ -85,7 +85,11 @@ function buildPortalUI(menus) {
     const section = document.createElement('section');
     section.id = menu.id;
     section.className = `page-section ${isDefault ? 'active' : ''}`;
-    
+    // ต่อเข้า DOM ก่อนเติมเนื้อหา — renderSettingsModule เป็น async, ถ้าต่อเข้า DOM
+    // หลังเรียก จะมีช่วงสั้นๆ ที่ section ยังลอยอยู่นอกเอกสาร ทำให้ document.getElementById
+    // หาลูกของมันไม่เจอถ้ามีโค้ดส่วนอื่นมาแข่งจังหวะกัน
+    mainContainer.appendChild(section);
+
     if (menu.isIframe) {
       // โหลด iframe แบบ lazy: เมนูแรก (isDefault) โหลดทันที ส่วนที่เหลือรอจนกว่าจะถูก
       // คลิกเปิดจริง (ดู switchModule ใน main.js) — ไม่งั้นทุก child app ทั้ง 7 ตัวจะ
@@ -97,7 +101,7 @@ function buildPortalUI(menus) {
           <iframe ${srcAttr} style="width: 100%; height: 100%; border: none;"></iframe>
         </div>`;
     } else if (menu.id === 'sec-settings' && typeof renderSettingsModule === 'function') {
-      // หน้า "ตั้งค่าสิทธิ์" — เรนเดอร์จริงจาก js/settings.js (ไม่ใช่ placeholder)
+      // หน้า Authorization — เรนเดอร์จริงจาก js/settings.js (ไม่ใช่ placeholder)
       renderSettingsModule(section);
     } else {
       // ส่วนเผื่อเลือกในอนาคต หากมีหน้าจอภายในหน้าบ้านเอง
@@ -106,9 +110,7 @@ function buildPortalUI(menus) {
           <p class="text-gray-500">กำลังโหลดเนื้อหาสำหรับโมดูล ${menu.label}...</p>
         </div>`;
     }
-    
-    mainContainer.appendChild(section);
-    
+
     if (isDefault) {
       const pageTitle = document.getElementById('pageTitle');
       if (pageTitle) {
