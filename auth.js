@@ -1,5 +1,11 @@
 // ⚠️ ใส่ URL Web App ของคุมสิทธิ์ที่คุณจัดทำไว้ในขั้นตอนก่อนหน้านี้
-const AUTH_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwvg_N-ZAqfZVJCyRTTizomDZR3_eH0WMgmxp8gc1YqUtYL6AZte4sRJlEIqwL3zs_PJA/exec"; 
+const AUTH_API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwvg_N-ZAqfZVJCyRTTizomDZR3_eH0WMgmxp8gc1YqUtYL6AZte4sRJlEIqwL3zs_PJA/exec";
+
+// เก็บ token ของ session ปัจจุบันไว้ใช้เรียก action ที่ต้องยืนยันตัวตน (เช่น หน้า
+// "ตั้งค่าสิทธิ์" — getSettings/saveUser/saveRoles/... ทุกตัวต้องมี token ถึงจะผ่าน
+// guardAdmin() ฝั่ง Auth.gs ได้) ไม่เก็บลง localStorage เพราะ token หมดอายุได้เอง
+// อยู่แล้ว (8 ชม.) และ checkExistingSession() ก็ยิง login ใหม่ให้ทุกครั้งที่เปิดหน้าเว็บ
+window.AUTH_TOKEN = '';
 
 async function postAuth(payload) {
   const response = await fetch(AUTH_API_ENDPOINT, {
@@ -35,11 +41,12 @@ async function executeAuth() {
     if (result.success) {
       // ✅ บันทึก Session ไว้ใน localStorage เพื่อให้จำการ login ได้แม้ Refresh หน้า
       localStorage.setItem('oma_session', JSON.stringify({ email, password }));
-      
+      window.AUTH_TOKEN = result.token || '';
+
       const loginWindow = document.getElementById('login-window');
       if (loginWindow) loginWindow.remove(); // ทำลายหน้า Login ทิ้งทันทีเพื่อความปลอดภัย
       document.getElementById('portal-workspace').style.display = 'block';
-      
+
       // ส่งรายการเมนูที่ได้รับสิทธิ์ไปวาดโครงสร้างหน้าเว็บ
       buildPortalUI(result.menus);
     } else {
@@ -86,6 +93,9 @@ function buildPortalUI(menus) {
         <div style="width: 100%; height: calc(100vh - 48px); min-height: calc(100vh - 48px); background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
           <iframe src="${menu.src}" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>`;
+    } else if (menu.id === 'sec-settings' && typeof renderSettingsModule === 'function') {
+      // หน้า "ตั้งค่าสิทธิ์" — เรนเดอร์จริงจาก js/settings.js (ไม่ใช่ placeholder)
+      renderSettingsModule(section);
     } else {
       // ส่วนเผื่อเลือกในอนาคต หากมีหน้าจอภายในหน้าบ้านเอง
       section.innerHTML = `
@@ -116,6 +126,7 @@ async function checkExistingSession() {
     
     if (result.success) {
       // Session ยังใช้ได้ -> ข้ามหน้า Login ไปเลย
+      window.AUTH_TOKEN = result.token || '';
       const loginWindow = document.getElementById('login-window');
       if (loginWindow) loginWindow.remove();
       document.getElementById('portal-workspace').style.display = 'block';
@@ -132,6 +143,7 @@ async function checkExistingSession() {
 // 🔓 ฟังก์ชัน Logout
 function logoutUser() {
   localStorage.removeItem('oma_session');
+  window.AUTH_TOKEN = '';
   location.reload(); // รีเฟรชหน้าใหม่ทั้งหมด กลับไปหน้า Login
 }
 
