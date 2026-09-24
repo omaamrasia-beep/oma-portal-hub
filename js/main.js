@@ -10,8 +10,16 @@ function switchModule(targetId, element, title) {
   const targetSection = document.getElementById(targetId);
   if(targetSection) {
     targetSection.classList.add('active');
+
+    // โหลด iframe ของ child app แบบ lazy — ตั้ง src จริงตอนคลิกเปิดครั้งแรกเท่านั้น
+    // (ดูจุดตั้ง data-src ใน buildPortalUI ของ js/auth.js)
+    const lazyFrame = targetSection.querySelector('iframe[data-src]');
+    if (lazyFrame) {
+      lazyFrame.src = lazyFrame.dataset.src;
+      lazyFrame.removeAttribute('data-src');
+    }
   }
-  
+
   const pageTitle = document.getElementById('pageTitle');
   if (pageTitle) {
     pageTitle.innerText = title;

@@ -87,11 +87,14 @@ function buildPortalUI(menus) {
     section.className = `page-section ${isDefault ? 'active' : ''}`;
     
     if (menu.isIframe) {
-      // ดึงทุกโมดูลที่เป็น Iframe มาแสดงผล (รวมถึงหน้าโครงการอันใหม่ของคุณด้วย)
+      // โหลด iframe แบบ lazy: เมนูแรก (isDefault) โหลดทันที ส่วนที่เหลือรอจนกว่าจะถูก
+      // คลิกเปิดจริง (ดู switchModule ใน main.js) — ไม่งั้นทุก child app ทั้ง 7 ตัวจะ
+      // โหลดพร้อมกันหมดตั้งแต่ล็อกอิน ทำให้เว็บช้าและมี console warning จากแอปที่ไม่ได้เปิดดูด้วย
       section.style.height = '100%';
+      const srcAttr = isDefault ? `src="${menu.src}"` : `data-src="${menu.src}"`;
       section.innerHTML = `
         <div style="width: 100%; height: calc(100vh - 48px); min-height: calc(100vh - 48px); background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
-          <iframe src="${menu.src}" style="width: 100%; height: 100%; border: none;"></iframe>
+          <iframe ${srcAttr} style="width: 100%; height: 100%; border: none;"></iframe>
         </div>`;
     } else if (menu.id === 'sec-settings' && typeof renderSettingsModule === 'function') {
       // หน้า "ตั้งค่าสิทธิ์" — เรนเดอร์จริงจาก js/settings.js (ไม่ใช่ placeholder)
