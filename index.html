@@ -142,6 +142,26 @@
     .badge.active { background: var(--success-bg); color: var(--success); }
     .badge.closed { background: var(--bg); color: var(--text-2); }
     .badge.alert { background: var(--danger-bg); color: var(--danger); }
+
+    /* ==========================================
+       modal / popup (ให้ตรงธีมเดียวกับส่วนอื่นของเว็บ)
+    ========================================== */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,37,47,0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 250; }
+    .modal-box { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); border: 1px solid var(--border); width: 100%; max-width: 480px; max-height: 90vh; overflow: auto; padding: 24px; }
+    .modal-box h3 { font-family: 'Prompt', sans-serif; font-weight: 600; font-size: 18px; color: var(--text); margin-bottom: 18px; }
+    .modal-box label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; }
+    .modal-box input[type=text], .modal-box input[type=email], .modal-box input[type=password], .modal-box select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); transition: .2s;
+    }
+    .modal-box input[type=text]:focus, .modal-box input[type=email]:focus, .modal-box input[type=password]:focus, .modal-box select:focus {
+      outline: none; border-color: var(--red); box-shadow: 0 0 0 3px var(--red-light);
+    }
+    .modal-box .field-check { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; }
+    .btn-primary { background: var(--red); color: #fff; border: none; border-radius: var(--radius-sm); padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; transition: .2s; }
+    .btn-primary:hover { background: #b71c1c; }
+    .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; transition: .2s; }
+    .btn-ghost:hover { background: var(--bg); }
   </style>
 
   <script src="js/main.js" defer></script>
