@@ -47,8 +47,9 @@ async function executeAuth() {
     const result = await postAuth({ email, password });
     
     if (result.success) {
-      // ✅ บันทึก Session ไว้ใน localStorage เพื่อให้จำการ login ได้แม้ Refresh หน้า
-      localStorage.setItem('oma_session', JSON.stringify({ email, password }));
+      // ✅ เก็บแค่ token (ไม่เก็บรหัสผ่านแล้ว) ไว้ใช้ verify ตอนเปิดหน้าเว็บครั้งถัดไป —
+      // ดู checkExistingSession() ด้านล่าง เร็วกว่าล็อกอินใหม่ทั้งชุดมาก
+      localStorage.setItem('oma_token', result.token || '');
       window.AUTH_TOKEN = result.token || '';
 
       const loginWindow = document.getElementById('login-window');
@@ -138,25 +139,29 @@ function buildPortalUI(menus) {
   });}
 
 // ✅ เช็คว่ามี Session เดิมที่ยัง Login ค้างอยู่ไหม (เรียกใช้ตอนเปิดหน้าเว็บ)
+// เดิมฟังก์ชันนี้ล็อกอินใหม่ทั้งชุดด้วย email+password ทุกครั้งที่เปิดหน้าเว็บ (อ่านชีต
+// Users/Roles/Projects สด + เขียนแถว session ใหม่ + เขียน log ใหม่ทุกครั้ง) ทำให้ทุก
+// ครั้งที่เปิดเว็บช้าโดยไม่จำเป็น — เปลี่ยนมาใช้ 'verify' ด้วย token แทน ซึ่งฝั่ง Auth.gs
+// cache ผลไว้แล้ว (ดู apiVerify) แค่เช็คว่า token ยังไม่หมดอายุ ไม่ต้องอ่าน/เขียนซ้ำ
+// เท่าเดิม เร็วกว่ามาก — token หมดอายุเองใน 8 ชม. ถ้า verify ไม่ผ่านก็แค่กลับไปหน้า login
+// ให้กรอกรหัสผ่านใหม่ตามปกติ (ไม่เก็บรหัสผ่านไว้ใน localStorage อีกต่อไปด้วย ปลอดภัยกว่าเดิม)
 async function checkExistingSession() {
-  const saved = localStorage.getItem('oma_session');
-  if (!saved) return; // ไม่มี session เดิม ให้แสดงหน้า login ตามปกติ
-  
+  const token = localStorage.getItem('oma_token');
+  if (!token) return; // ไม่มี session เดิม ให้แสดงหน้า login ตามปกติ
+
   try {
-    const { email, password } = JSON.parse(saved);
-    
-    const result = await postAuth({ email, password });
-    
+    const result = await postAuth({ action: 'verify', token });
+
     if (result.success) {
       // Session ยังใช้ได้ -> ข้ามหน้า Login ไปเลย
-      window.AUTH_TOKEN = result.token || '';
+      window.AUTH_TOKEN = token;
       const loginWindow = document.getElementById('login-window');
       if (loginWindow) loginWindow.remove();
       document.getElementById('portal-workspace').style.display = 'block';
       buildPortalUI(result.menus);
     } else {
-      // รหัสผ่านอาจถูกเปลี่ยน หรือสิทธิ์ถูกถอน -> ล้าง session เก่าทิ้ง
-      localStorage.removeItem('oma_session');
+      // token หมดอายุ หรือสิทธิ์ถูกถอน -> ล้าง session เก่าทิ้ง
+      localStorage.removeItem('oma_token');
     }
   } catch (err) {
     console.warn('ไม่สามารถตรวจสอบ session เดิมได้:', err);
@@ -165,7 +170,7 @@ async function checkExistingSession() {
 
 // 🔓 ฟังก์ชัน Logout
 function logoutUser() {
-  localStorage.removeItem('oma_session');
+  localStorage.removeItem('oma_token');
   window.AUTH_TOKEN = '';
   location.reload(); // รีเฟรชหน้าใหม่ทั้งหมด กลับไปหน้า Login
 }
