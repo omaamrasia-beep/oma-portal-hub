@@ -116,7 +116,7 @@ function buildPortalUI(menus) {
       const srcAttr = isDefault ? `src="${menu.src}"` : `data-src="${menu.src}"`;
       section.innerHTML = `
         <div class="iframe-shell">
-          <div class="iframe-loading"><div class="spinner"></div><p>กำลังโหลด...</p></div>
+          <div class="iframe-loading"><div class="spinner"></div></div>
           <iframe ${srcAttr} style="width: 100%; height: 100%; border: none;" onload="this.previousElementSibling.classList.add('hide')"></iframe>
         </div>`;
     } else if (menu.id === 'sec-settings' && typeof renderSettingsModule === 'function') {

@@ -117,7 +117,7 @@ function settingsToast(msg, isError) {
 
 async function renderSettingsModule(container) {
   if (!container) return;
-  container.innerHTML = '<div class="p-6 bg-white rounded-xl border border-gray-200"><p class="text-gray-500">กำลังโหลดข้อมูลสิทธิ์…</p></div>';
+  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px 0"><div class="spinner"></div></div>';
   const r = await settingsApi('getSettings', {});
   // ถ้าระหว่างรอ API หน้านี้ถูกแทนที่/หลุดออกจากเอกสารไปแล้ว ให้เลิกทำงานเงียบๆ
   // แทนที่จะไปพัง innerHTML ของ node ที่ไม่มีใครมองเห็นแล้ว
