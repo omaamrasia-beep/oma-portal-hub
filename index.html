@@ -16,7 +16,10 @@
        1. THEME VARIABLES (Liquid Glass & AMR ASIA)
     ========================================== */
     :root {
-      --red: #D62828; 
+      /* บังคับ popup/dropdown ของฟอร์มเบราว์เซอร์ (เช่น รายการแนะนำของ <datalist>)
+         ให้เป็นธีมสว่างเสมอ ไม่ให้มืดตาม dark mode ของระบบปฏิบัติการ/เบราว์เซอร์ */
+      color-scheme: light;
+      --red: #D62828;
       --red-light: rgba(214, 40, 40, 0.1); 
       --bg: #F5F5F7; 
       --surface: #FFFFFF; 
@@ -177,8 +180,7 @@
     .iframe-shell { position: relative; width: 100%; height: calc(100vh - 48px); min-height: calc(100vh - 48px); background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
     .iframe-loading { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: var(--surface); transition: opacity .25s ease; }
     .iframe-loading.hide { opacity: 0; pointer-events: none; }
-    .iframe-loading .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: iframeSpin .7s linear infinite; }
-    .iframe-loading p { font-size: 13px; color: var(--text-2); }
+    .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: iframeSpin .7s linear infinite; }
     @keyframes iframeSpin { to { transform: rotate(360deg); } }
   </style>
 
