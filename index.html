@@ -150,7 +150,8 @@
     .badge.active { background: var(--success-bg); color: var(--success); }
     .badge.closed { background: var(--bg); color: var(--text-2); }
     .badge.alert { background: var(--danger-bg); color: var(--danger); }
-
+    .iframe-shell iframe { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; max-height: 100% !important; border: none !important; display: block !important; }
+        
     /* ==========================================
        modal / popup (ให้ตรงธีมเดียวกับส่วนอื่นของเว็บ)
     ========================================== */
@@ -177,7 +178,7 @@
     /* ==========================================
        ตัวโหลดของแอปลูก (iframe) — ทุกแท็บใช้รูปแบบเดียวกันหมด กันจอขาวเปล่าระหว่างรอ
     ========================================== */
-    .iframe-shell { position: relative; width: 100%; flex: 1; min-height: 0; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
+    . { position: relative; width: 100%; flex: 1; min-height: 0; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
     .iframe-loading { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: var(--surface); transition: opacity .25s ease; }
     .iframe-loading.hide { opacity: 0; pointer-events: none; }
     .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: iframeSpin .7s linear infinite; }
