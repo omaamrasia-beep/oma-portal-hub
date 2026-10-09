@@ -47,6 +47,15 @@ function collapseSidebarOnOutsideInteraction(event) {
 document.addEventListener('click', collapseSidebarOnOutsideInteraction);
 document.addEventListener('focusin', collapseSidebarOnOutsideInteraction);
 
+// คลิกในหน้าลูก (iframe ข้ามโดเมน) ไม่ยิง click มาที่หน้าหลัก และ focusin ก็ไม่ยิงเสมอไป
+// เลยดักตอนหน้าหลักเสียโฟกัส (blur) แล้วดูว่าโฟกัสไปอยู่ที่ iframe หรือไม่
+window.addEventListener('blur', function () {
+  setTimeout(function () {
+    const a = document.activeElement;
+    if (a && a.tagName === 'IFRAME') collapseSidebarOnOutsideInteraction({ target: a });
+  }, 0);
+});
+
 // ==========================================
 // --- UI CONTROLS (Sidebar & Sections) ---
 // ==========================================
