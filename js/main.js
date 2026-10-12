@@ -15,7 +15,12 @@ function switchModule(targetId, element, title) {
     // (ดูจุดตั้ง data-src ใน buildPortalUI ของ js/auth.js)
     const lazyFrame = targetSection.querySelector('iframe[data-src]');
     if (lazyFrame) {
-      lazyFrame.src = lazyFrame.dataset.src;
+            // ส่ง token ของ session ให้แอปลูกยืนยันสิทธิ์กับ Hub (ชื่อ key ต้องตรงกับที่ auth.js เก็บไว้)
+      const tk = sessionStorage.getItem('oma_token') || '';
+      const base = lazyFrame.dataset.src;
+      lazyFrame.src = tk
+        ? base + (base.indexOf('?') === -1 ? '?' : '&') + 'portalToken=' + encodeURIComponent(tk)
+        : base;
       lazyFrame.removeAttribute('data-src');
     }
   }
