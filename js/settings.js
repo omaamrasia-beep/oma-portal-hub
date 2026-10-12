@@ -377,6 +377,16 @@ function renderProjectsTab(body) {
 }
 
 /* ── สิทธิ์ในแอปลูก (ละเอียดกว่าระดับเมนู) ─────── */
+// ชื่อหน้าตามที่แสดงบนแท็บของแต่ละแอปลูก ใช้แทนรหัสหน้าในตารางสิทธิ์
+// (หน้าใหม่ที่ยังไม่อยู่ในรายการนี้จะแสดงรหัสเดิมแทน)
+const APP_PAGE_LABELS = {
+  'sec-wbs-dash':      { dashboard: 'Overview (Current Status)', update: 'Update %Actual' },
+  'sec-finance-dash':  { billing: 'Billing & Collection', bond: 'Bond & Retention', action: 'Action Center', closed: 'History' },
+  'sec-projects-dash': { overview: 'Overview', frontlog: 'Frontlog', action: 'Action Center', closure: 'Closure Tracking', trends: 'History' },
+  'sec-employee-dash': { ov: 'Overview', org: 'Team Structure', dir: 'Employee Directory', ins: 'Workforce Analysis', tb: 'All Employees' },
+  'sec-kpi-dash':      { ov: 'Overview', dept: 'KPI Detail', proj: 'Projects', entry: 'Data Entry' }
+};
+
 function renderAppPagesTab(body) {
   const s = SETTINGS_DATA;
   const appIds = Object.keys(s.appPages || {});
@@ -398,7 +408,7 @@ function renderAppPagesTab(body) {
         const checked = (cfg.perRole[r.role] || []).indexOf(pageId) !== -1;
         return '<td class="text-center"><input type="checkbox" data-page="' + escHtml(pageId) + '" data-role="' + escHtml(r.role) + '"' + (checked ? ' checked' : '') + '></td>';
       }).join('');
-      return '<tr><td>' + escHtml(pageId) + '</td>' + cells + '</tr>';
+      return '<tr><td>' + escHtml(((APP_PAGE_LABELS[appId] || {})[pageId]) || pageId) + '</td>' + cells + '</tr>';
     }).join('');
 
     return '<div class="card mb-4" data-app="' + escHtml(appId) + '"><div class="card-header"><div><div class="card-title">' + escHtml(appLabel) + '</div></div></div>' +
