@@ -89,7 +89,13 @@ function buildPortalUI(menus) {
     
     // 1. สร้างปุ่มเมนูใน Sidebar ด้านซ้าย
     const navLink = document.createElement('a');
-    navLink.href = "javascript:void(0)";
+        // ไม่ใส่ href เพื่อไม่ให้แถบสถานะเบราว์เซอร์โชว์ "javascript:void(0)" ตอนชี้เมนู
+    // (.nav-item มี cursor:pointer อยู่แล้ว) — role/tabindex/keydown ให้ใช้คีย์บอร์ดได้เหมือนเดิม
+    navLink.setAttribute('role', 'button');
+    navLink.tabIndex = 0;
+    navLink.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+    });
     navLink.className = `nav-item ${isDefault ? 'active' : ''}`;
     navLink.innerHTML = `<span class="nav-icon"><i class="bi ${menu.icon}"></i></span><span class="nav-label">${menu.label}</span>`;
     navLink.onclick = function() { switchModule(menu.id, this, menu.label); };
