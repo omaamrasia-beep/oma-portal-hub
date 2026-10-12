@@ -113,7 +113,11 @@ function buildPortalUI(menus) {
       // (iframe.onload) แทนที่จะเห็นพื้นที่ว่างสีขาวเปล่าๆ ระหว่างรอ — ให้ทุกแอปลูกมี
       // ลักษณะตอนโหลดเหมือนกันหมด ไม่ว่าตัวแอปเองจะมีหน้าจอ loading ของตัวเองหรือไม่
       section.style.height = '100%';
-      const srcAttr = isDefault ? `src="${menu.src}"` : `data-src="${menu.src}"`;
+            // แนบ token ของ session ให้แอปลูกยืนยันสิทธิ์กับ Hub (แอปลูกอ่านจากพารามิเตอร์ portalToken)
+      const frameUrl = window.AUTH_TOKEN
+        ? menu.src + (menu.src.indexOf('?') === -1 ? '?' : '&') + 'portalToken=' + encodeURIComponent(window.AUTH_TOKEN)
+        : menu.src;
+      const srcAttr = isDefault ? `src="${frameUrl}"` : `data-src="${frameUrl}"`;
       section.innerHTML = `
         <div class="iframe-shell">
           <div class="iframe-loading"><div class="spinner"></div></div>
