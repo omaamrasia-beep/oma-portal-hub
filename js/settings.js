@@ -196,6 +196,55 @@ function renderUsersTab(body) {
   }));
 }
 
+// ช่องเลือกโครงการของผู้ใช้: ค้นหาด้วยรหัส/ชื่อ โครงการที่เลือกแล้วขึ้นเป็นชิปด้านบน (กด × เพื่อเอาออก)
+// และหายจากรายการที่ให้เลือก — ยังใช้ checkbox ใน #mProjects เป็นตัวเก็บค่าจริง
+// ปุ่มบันทึกเดิมจึงอ่านค่าได้เหมือนเดิมทุกอย่าง
+function setupProjectPicker(ov) {
+  const list = ov.querySelector('#mProjects');
+  const chips = ov.querySelector('#mProjChips');
+  const search = ov.querySelector('#mProjSearch');
+  if (!list || !chips || !search) return;
+  const emptyEl = document.createElement('div');
+  emptyEl.className = 'text-xs text-gray-400';
+  emptyEl.style.display = 'none';
+  list.parentNode.appendChild(emptyEl);
+ 
+  function refresh() {
+    const q = search.value.trim().toLowerCase();
+    let shown = 0, total = 0;
+    chips.innerHTML = '';
+    Array.from(list.querySelectorAll('input[type=checkbox]')).forEach(cb => {
+      const lb = cb.closest('label');
+      if (cb.checked) {
+        lb.style.display = 'none';
+        const chip = document.createElement('span');
+        chip.className = 'badge active';
+        chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px';
+        chip.title = (lb.textContent || '').trim();
+        chip.appendChild(document.createTextNode(cb.value));
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.textContent = '×';
+        x.title = 'เอาออก';
+        x.style.cssText = 'border:0;background:transparent;cursor:pointer;font-size:15px;line-height:1;color:inherit;padding:0';
+        x.addEventListener('click', () => { cb.checked = false; refresh(); });
+        chip.appendChild(x);
+        chips.appendChild(chip);
+      } else {
+        total++;
+        const hit = !q || (lb.textContent || '').toLowerCase().indexOf(q) !== -1;
+        lb.style.display = hit ? '' : 'none';
+        if (hit) shown++;
+      }
+    });
+    emptyEl.style.display = shown ? 'none' : '';
+    emptyEl.textContent = total ? 'ไม่พบโครงการที่ค้นหา' : 'เลือกครบทุกโครงการแล้ว';
+  }
+  list.addEventListener('change', refresh);
+  search.addEventListener('input', refresh);
+  refresh();
+}
+ 
 function userModal(user) {
   const s = SETTINGS_DATA;
   const isNew = !user;
@@ -214,9 +263,11 @@ function userModal(user) {
       s.roles.filter(r => r.active).map(r => '<option value="' + escHtml(r.role) + '"' + (r.role === u.role ? ' selected' : '') + '>' + escHtml(r.label) + '</option>').join('') +
     '</select></div>' +
     '<div id="mProjWrap"><label>โครงการที่เข้าถึงได้</label>' +
-      '<div class="grid grid-cols-2 gap-2" id="mProjects">' +
+      '<div id="mProjChips" class="flex flex-wrap gap-2 mb-2"></div>' +
+      '<input id="mProjSearch" type="text" autocomplete="off" placeholder="พิมพ์รหัสหรือชื่อโครงการเพื่อค้นหา…" class="mb-2">' +
+      '<div class="grid gap-1" id="mProjects" style="max-height:230px;overflow:auto">' +
       (s.projects.length ? s.projects.filter(p => p.active).map(p =>
-        '<label class="field-check"><input type="checkbox" value="' + escHtml(p.code) + '"' + (u.projects.indexOf(p.code) !== -1 ? ' checked' : '') + '> ' + escHtml(p.name || p.code) + '</label>').join('')
+        '<label class="field-check"><input type="checkbox" value="' + escHtml(p.code) + '"' + (u.projects.indexOf(p.code) !== -1 ? ' checked' : '') + '> <b>' + escHtml(p.code) + '</b>' + (p.name && p.name !== p.code ? ' — ' + escHtml(p.name) : '') + '</label>').join('')
         : '<span class="text-xs text-gray-400">ยังไม่มีโครงการ — เพิ่มได้ที่แท็บ "โครงการ"</span>') +
       '</div></div>' +
     '<div><label>' + (isNew ? 'รหัสผ่านเริ่มต้น' : 'ตั้งรหัสผ่านใหม่ (เว้นว่าง = ไม่เปลี่ยน)') + '</label><input id="mPass" type="password"></div>' +
@@ -250,6 +301,8 @@ function userModal(user) {
   document.getElementById('mRole').addEventListener('change', syncScope);
   syncScope();
 
+  setupProjectPicker(ov);
+ 
   document.getElementById('mCancel').addEventListener('click', () => ov.remove());
   document.getElementById('mSave').addEventListener('click', async () => {
     const email = document.getElementById('mEmail').value.trim();
@@ -315,6 +368,40 @@ function renderRolesTab(body) {
 }
 
 /* ── โครงการ ──────────────────────────────────── */
+// รายการแนะนำรหัสโครงการ (autocomplete) — ตัดรหัสที่อยู่ในตารางแล้วออก ไม่ให้ขึ้นซ้ำ
+// (อัปเดตทุกครั้งที่พิมพ์รหัส เพิ่มแถว หรือลบแถว)
+// รายการแนะนำรหัสโครงการ (autocomplete) — ตัดรหัสที่อยู่ในตารางแล้วออก ไม่ให้ขึ้นซ้ำ
+// (อัปเดตทุกครั้งที่พิมพ์รหัส เพิ่มแถว หรือลบแถว)
+function refreshProjDatalist() {
+  const dl = document.getElementById('projCodeList');
+  if (!dl) return;
+  const used = new Set(Array.from(document.querySelectorAll('#projRows [data-code]')).map(i => i.value.trim()));
+  const codes = Object.keys(KNOWN_PROJECTS).filter(c => !used.has(c));
+  const sig = codes.join('|');
+  if (dl.dataset.sig === sig) return;
+  dl.dataset.sig = sig;
+  dl.innerHTML = codes.map(code => '<option value="' + escHtml(code) + '">' + escHtml(KNOWN_PROJECTS[code]) + '</option>').join('');
+}
+ 
+// ดาวน์โหลดรายการโครงการที่อยู่ในตารางตอนนี้เป็น CSV (เปิดใน Excel ได้ ภาษาไทยไม่เพี้ยน)
+function exportProjectsCsv() {
+  const rows = Array.from(document.querySelectorAll('#projRows tr')).map(tr => ({
+    code: tr.querySelector('[data-code]').value.trim(),
+    name: tr.querySelector('[data-name]').value.trim(),
+    active: tr.querySelector('[data-active]').checked
+  })).filter(r => r.code);
+  if (!rows.length) return settingsToast('ยังไม่มีโครงการให้ดาวน์โหลด', true);
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const csv = '\uFEFF' + ['รหัสโครงการ,ชื่อโครงการ,ใช้งาน'].concat(
+    rows.map(r => [q(r.code), q(r.name), r.active ? 'TRUE' : 'FALSE'].join(','))).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'OMA_Hub_Projects.csv';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
 function renderProjectsTab(body) {
   const s = SETTINGS_DATA;
   const codeInput = (code) => '<input data-code list="projCodeList" type="text" value="' + escHtml(code || '') + '" class="w-full p-1.5 border border-gray-200 rounded text-sm">';
@@ -337,21 +424,26 @@ function renderProjectsTab(body) {
     '<div class="card"><div class="card-header"><div><div class="card-title">โครงการ</div></div></div>' +
     '<div class="card-body"><div class="table-wrap"><table><thead><tr><th>รหัส</th><th>ชื่อโครงการ</th><th class="text-center">ใช้งาน</th><th></th></tr></thead>' +
     '<tbody id="projRows">' + rowsHtml + '</tbody></table></div>' +
-    '<div class="flex justify-between mt-4"><button id="btnAddRow" class="px-4 py-2 border border-gray-200 rounded-lg text-sm">+ เพิ่มแถว</button>' +
+    '<div class="flex justify-between mt-4"><div class="flex gap-2"><button id="btnAddRow" class="px-4 py-2 border border-gray-200 rounded-lg text-sm">+ เพิ่มแถว</button>' +
+    '<button id="btnExportProj" class="px-4 py-2 border border-gray-200 rounded-lg text-sm">ดาวน์โหลด Excel (CSV)</button></div>' +
     '<button id="btnSaveProj" class="px-4 py-2 bg-[#D62828] text-white rounded-lg text-sm font-medium">บันทึกโครงการ</button></div></div></div>' +
     datalistHtml;
 
   function wireRow(tr) {
-    tr.querySelector('[data-remove]').addEventListener('click', () => tr.remove());
+    tr.querySelector('[data-remove]').addEventListener('click', () => { tr.remove(); refreshProjDatalist(); });
     const codeEl = tr.querySelector('[data-code]');
     const nameEl = tr.querySelector('[data-name]');
     codeEl.addEventListener('input', () => {
       const known = KNOWN_PROJECTS[codeEl.value.trim()];
       if (known && !nameEl.value.trim()) nameEl.value = known;
+      refreshProjDatalist();
     });
   }
   document.querySelectorAll('#projRows tr').forEach(wireRow);
+  refreshProjDatalist();
 
+  document.getElementById('btnExportProj').addEventListener('click', exportProjectsCsv);
+ 
   document.getElementById('btnAddRow').addEventListener('click', () => {
     const tr = document.createElement('tr');
     tr.dataset.row = '';
