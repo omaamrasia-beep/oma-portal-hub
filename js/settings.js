@@ -475,7 +475,8 @@ const APP_PAGE_LABELS = {
   'sec-wbs-dash':      { dashboard: 'Overview (Current Status)', update: 'Update %Actual' },
   'sec-finance-dash':  { billing: 'Billing & Collection', bond: 'Bond & Retention', action: 'Action Center', closed: 'History' },
   'sec-projects-dash': { overview: 'Overview', frontlog: 'Frontlog', action: 'Action Center', closure: 'Closure Tracking', trends: 'History' },
-  'sec-employee-dash': { ov: 'Overview', org: 'Team Structure', dir: 'Employee Directory', ins: 'Workforce Analysis', tb: 'All Employees' },
+  'sec-employee-dash': { ov: 'Overview', org: 'Team Structure', dir: 'Employee Directory', ins: 'Workforce Analysis', tb: 'All Employees',
+                         trn: 'Training History', emp_edit: '✏️ แก้ไขข้อมูล (เพิ่ม/ลบ พนักงานและการอบรม)' },
   'sec-kpi-dash':      { ov: 'Overview', dept: 'KPI Detail', proj: 'Projects', entry: 'Data Entry' }
 };
 

@@ -127,7 +127,7 @@ function buildPortalUI(menus) {
       section.innerHTML = `
         <div class="iframe-shell">
           <div class="iframe-loading"><div class="spinner"></div></div>
-          <iframe ${srcAttr} style="width: 100%; height: 100%; border: none;" onload="this.previousElementSibling.classList.add('hide')"></iframe>
+          <iframe ${srcAttr} allow="clipboard-write" style="width: 100%; height: 100%; border: none;" onload="this.previousElementSibling.classList.add('hide')"></iframe>
         </div>`;
     } else if (menu.id === 'sec-settings' && typeof renderSettingsModule === 'function') {
       // หน้า Authorization — เรนเดอร์จริงจาก js/settings.js (ไม่ใช่ placeholder)
